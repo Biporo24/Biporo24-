@@ -1,0 +1,141 @@
+FROM python:3.12-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    bash \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Hermes Agent
+RUN pip install --no-cache-dir hermes-agent
+
+# Create working directory
+WORKDIR /app
+
+# Create Hermes home directory
+RUN mkdir -p /root/.hermes
+
+# Copy config file
+COPY config.yaml /root/.hermes/config.yaml
+
+# Expose port for webhook
+EXPOSE 8443
+
+# Health check
+HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:8443/health || exit 1
+
+# Run gateway
+CMD ["hermes", "gateway", "start"]
+
+# Hermes Telegram Bot - Render Deployment
+
+Bot Telegram 24/7 chạy trên Render.com
+
+## Bot Information
+- **Bot Name**: Bác sĩ Mai
+- **Username**: @PAAOBip_bot
+- **Platform**: Render.com (Free tier)
+- **Mode**: Webhook
+
+## Files
+- `Dockerfile` - Container configuration
+- `config.yaml` - Hermes configuration
+- `.gitignore` - Git ignore rules
+- `start.sh` - Startup script
+
+## Environment Variables Required
+Set these in Render Dashboard:
+
+1. `ANTHROPIC_API_KEY` - Claude API key
+2. `TELEGRAM_BOT_TOKEN` - Bot token from @BotFather
+3. `TELEGRAM_ALLOWED_USERS` - Your Telegram user ID
+4. `TELEGRAM_GROUP_ALLOWED_CHATS` - Group chat ID
+5. `TELEGRAM_WEBHOOK_SECRET` - Random secret string
+6. `TELEGRAM_WEBHOOK_URL` - https://your-app.onrender.com/telegram
+
+## Deploy to Render
+1. Push this repo to GitHub
+2. Create new Web Service on Render
+3. Connect this GitHub repo
+4. Add environment variables
+5. Deploy!
+
+## Author
+Thanh Nhan
+
+#!/bin/bash
+
+echo "🚀 Starting Hermes Gateway..."
+echo "Environment: Render.com"
+echo "Telegram Bot: @PAAOBip_bot (Bác sĩ Mai)"
+
+# Set webhook URL from Render's environment variable
+export TELEGRAM_WEBHOOK_URL="https://${RENDER_EXTERNAL_URL}/telegram"
+
+echo "Webhook URL: $TELEGRAM_WEBHOOK_URL"
+
+# Start gateway
+hermes gateway start
+
+# Keep container running and show logs
+tail -f /root/.hermes/logs/gateway.log
+
+# Secrets - NEVER commit to GitHub!
+.env
+*.key
+*.pem
+auth.json
+*.secret
+
+# Hermes data
+.hermes/
+state.db
+sessions/
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Hermes Config for Render.com Deployment
+# Bot: @PAAOBip_bot (Bác sĩ Mai)
+
+model:
+  provider: anthropic
+  model: claude-sonnet-4
+
+platforms:
+  telegram:
+    enabled: true
+    require_mention: true
+    exclusive_bot_mentions: true
+
+display:
+  interface: cli
+  colors: false
+
+logging:
+  level: info
+  format: json
+
+# Webhook mode for Render
+gateway:
+  streaming:
+    enabled: true
+  platforms:
+    telegram:
+      extra:
+        # Render will auto-set domain via RENDER_EXTERNAL_URL variable
+        webhook_port: 8443

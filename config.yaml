@@ -1,0 +1,30 @@
+# Hermes Config for Render.com Deployment
+# Bot: @PAAOBip_bot (Bác sĩ Mai)
+
+model:
+  provider: anthropic
+  model: claude-sonnet-4
+
+platforms:
+  telegram:
+    enabled: true
+    require_mention: true
+    exclusive_bot_mentions: true
+
+display:
+  interface: cli
+  colors: false
+
+logging:
+  level: info
+  format: json
+
+# Webhook mode for Render
+gateway:
+  streaming:
+    enabled: true
+  platforms:
+    telegram:
+      extra:
+        # Render will auto-set domain via RENDER_EXTERNAL_URL variable
+        webhook_port: 8443
